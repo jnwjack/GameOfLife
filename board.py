@@ -1,6 +1,10 @@
 import pygame
+from screen_object import ScreenObject
 
-class Board:
+MIN_N = 1
+MAX_N = 200
+
+class Board(ScreenObject):
   """
   Object that holds state of the grid as a 2D array. Also handles the drawing of the
   grid onto the screen.
@@ -8,6 +12,7 @@ class Board:
   def __init__(self, n):
     self.n = n
     self.rect = None
+    self.grid = []
     self.height = 0
     self.backgroundColor = (255, 255, 255)
     self.top = 20
@@ -20,17 +25,16 @@ class Board:
     self.delay = 50
     self.tick = 0
 
-    self.initializeGrid()
+    # Store 'alive' indexes in set
+    self.aliveCellIndexes = set()
+    self.origin = (0, 0)
+    self.offset = int(self.n / 2)
+
   
   def initializeGrid(self):
     # Create n x n grid
-    self.grid = []
-    for x in range(self.n):
-      self.grid.append([])
-      for y in range(self.n):
-        self.grid[x].append(False)
+    self.aliveCellIndexes = set()
 
-  
   def calculateSize(self, screenSize):
     # Height and width are equal to 75% of window height
     idealHeight = int(0.75 * screenSize[1])
@@ -56,21 +60,36 @@ class Board:
     pygame.draw.line(screen.surface, self.lineColor, (self.left + self.height, self.top), (self.left + self.height, self.top + self.height))
     pygame.draw.line(screen.surface, self.lineColor, (self.left, self.top + self.height), (self.left + self.height, self.top + self.height))
 
-    # Draw 'alive' cells
-    for x in range(self.n):
-      for y in range(self.n):
-        if(self.grid[x][y]):
-          cellRect = pygame.Rect(self.left + (x * lineSpacing), self.top + (y * lineSpacing), lineSpacing, lineSpacing)
-          pygame.draw.rect(screen.surface, self.squareFillColor, cellRect)
+    # Draw 'alive' cells that are within the viewing window
+    for (cartesianX, cartesianY) in self.aliveCellIndexes:
+      (indexX, indexY) = self.cartesianToBoardIndex((cartesianX, cartesianY))
+      # If cell is outside viewing window, skip drawing it
+      if(indexX < 0 or indexX >= self.n or indexY < 0 or indexY >= self.n):
+        continue
+      cellRect = pygame.Rect(self.left + (indexX * lineSpacing), self.top + (indexY * lineSpacing), lineSpacing, lineSpacing)
+      pygame.draw.rect(screen.surface, self.squareFillColor, cellRect)
       
-  def handleClick(self, surface, pos):
+  def handleClick(self, pos):
     # Mark/Unmark the clicked cell on the board
     relativeX = pos[0] - self.left
     relativeY = pos[1] - self.top
     lineSpacing = self.height / self.n
     indexX = int(relativeX / lineSpacing)
     indexY = int(relativeY / lineSpacing)
-    self.grid[indexX][indexY] = not self.grid[indexX][indexY]
+
+    (cartesianX, cartesianY) = self.boardIndexToCartesian((indexX, indexY))
+    if((cartesianX, cartesianY) in self.aliveCellIndexes):
+      self.aliveCellIndexes.remove((cartesianX, cartesianY))
+    else:
+      self.aliveCellIndexes.add((cartesianX, cartesianY))
+
+  def handleMouseWheel(self, pos, direction):
+    # Zoom in/out by 10 cells, set offset to match
+    lineSpacing = self.height / self.n
+    newN = self.n + direction
+    if(newN <= MAX_N and newN >= MIN_N):
+      self.n += 10 * direction
+      self.offset = int(self.n / 2)
   
   def cycle(self):
     if(self.autoPlay):
@@ -79,9 +98,18 @@ class Board:
         self.advanceState()
         self.tick = 0
 
+  def boardIndexToCartesian(self, pos):
+    x = pos[0] - self.offset + self.origin[0]
+    y = pos[1] - self.offset + self.origin[1]
+    return (x, y)
+  
+  def cartesianToBoardIndex(self, pos):
+    x = pos[0] + self.offset - self.origin[0]
+    y = pos[1] + self.offset - self.origin[1]
+    return (x, y)
+
   def advanceState(self):
     # TODO: Implement the logic for Game of Life
-
     pass
 
     

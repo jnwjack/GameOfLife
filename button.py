@@ -1,14 +1,16 @@
 import pygame
+from screen_object import ScreenObject
 
 BUTTON_SIZE = 75
 
-class Button:
+class Button(ScreenObject):
   """
   Generic object for button at the bottom of the screen. Also handles the drawing of the button
   onto the screen.
   """
   def __init__(self, imageFilename, callback, callbackArguments, relativeLeft, relativeTop):
     self.callback = callback
+    # Arguments to pass for callback function
     self.callbackArguments = [self] + callbackArguments 
     self.image = None
     self.loadImage(imageFilename)
@@ -27,8 +29,12 @@ class Button:
   def draw(self, screen):
     screen.surface.blit(self.image, self.rect)
 
-  def handleClick(self, surface, pos):
+  def handleClick(self, pos):
     self.callback(self.callbackArguments)
+
+  # Do nothing for buttons
+  def handleMouseWheel(self, pos, direction):
+    pass
 
   def loadImage(self, filename):
     self.image = pygame.image.load(filename).convert()

@@ -6,11 +6,11 @@ from callbacks import playCallback, nextCallback, resetCallback
 
 pygame.init()
 
-size = width, height = 320, 240
-gridSize = (700, 700)
+# Set window structures
+screenSize = (700, 700)
 clock = pygame.time.Clock()
-screen = Screen(gridSize)
-board = Board(50)
+screen = Screen(screenSize)
+board = Board(51)
 screen.addObject(board)
 
 
@@ -26,7 +26,11 @@ while True:
     if event.type == pygame.VIDEORESIZE:
       screen.resizeObjects()
 
-    if event.type == pygame.MOUSEBUTTONUP:
+    if event.type == pygame.MOUSEWHEEL:
+      screen.handleMouseWheel(pygame.mouse.get_pos(), event.y)
+
+    # pygame.mouse.get_pressed returns array of bools for all mouse buttons, true means button is clicked
+    if event.type == pygame.MOUSEBUTTONDOWN and True in pygame.mouse.get_pressed():
       screen.handleClick(event.pos)
 
   board.cycle()

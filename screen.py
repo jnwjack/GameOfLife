@@ -25,10 +25,17 @@ class Screen:
     obj.calculateSize(self.surface.get_size())
   
   def resizeObjects(self):
+    # Resize objects on screen
     for obj in self.objects:
       obj.calculateSize(self.surface.get_size())
 
   def handleClick(self, pos):
     for obj in self.objects:
       if(obj.rect.collidepoint(pos)):
-        obj.handleClick(self, pos)
+        obj.handleClick(pos)
+
+  def handleMouseWheel(self, pos, direction):
+    for obj in self.objects:
+      if(obj.rect.collidepoint(pos)):
+        obj.handleMouseWheel(pos, direction)
+        obj.calculateSize(self.surface.get_size())

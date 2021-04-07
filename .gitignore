@@ -1,3 +1,4 @@
 imagefiles
 old*
 __pycache__
+.vscode

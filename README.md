@@ -11,3 +11,8 @@ sudo apt-get install python3-pip
 ```shell
 python3 -m pip install pygame==2.0.0
 ```
+
+## Running
+```shell
+python3 gameoflife.py
+```
